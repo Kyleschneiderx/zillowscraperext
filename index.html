@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zillow Scraper</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      opacity: 0.9;
+    }
+
+    .content {
+      padding: 30px;
+    }
+
+    .section {
+      margin-bottom: 25px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #0066cc;
+    }
+
+    .button-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    button {
+      padding: 14px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+      color: white;
+      grid-column: span 2;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 102, 204, 0.4);
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+      transform: translateY(-2px);
+    }
+
+    .btn-export {
+      background: #17a2b8;
+      color: white;
+    }
+
+    .btn-export:hover {
+      background: #138496;
+      transform: translateY(-2px);
+    }
+
+    .status {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .status.show {
+      display: block;
+    }
+
+    .status.success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .status.error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .status.info {
+      background-color: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+
+    .loading {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid currentColor;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .export-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .data-preview {
+      margin-top: 20px;
+      max-height: 400px;
+      overflow-y: auto;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 15px;
+      background: #f9f9f9;
+    }
+
+    .data-preview h3 {
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    #propertyList {
+      list-style: none;
+    }
+
+    #propertyList li {
+      padding: 10px;
+      margin-bottom: 10px;
+      background: white;
+      border-radius: 6px;
+      border-left: 4px solid #0066cc;
+    }
+
+    .warning {
+      background: #fff3cd;
+      color: #856404;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #ffeaa7;
+      margin-bottom: 20px;
+    }
+
+    .warning strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🏠 Zillow Scraper</h1>
+      <p>Extract property listings from Zillow</p>
+    </div>
+
+    <div class="content">
+      <div class="warning">
+        <strong>⚠️ Important:</strong>
+        <p>This tool works by opening a new window with your Zillow URL. Due to browser security restrictions (CORS), the scraping happens in that new window. Please keep both windows open during scraping.</p>
+      </div>
+
+      <div class="section">
+        <label for="zillowUrl">Zillow Search URL:</label>
+        <input type="url" id="zillowUrl" placeholder="https://www.zillow.com/homes/..." value="">
+      </div>
+
+      <div class="section">
+        <label for="maxPages">Max Pages to Scrape:</label>
+        <input type="number" id="maxPages" value="5" min="1" max="50">
+      </div>
+
+      <div class="button-group">
+        <button id="scrapeBtn" class="btn-primary">Start Scraping</button>
+        <button id="scrapeCurrentBtn" class="btn-secondary">Scrape Current Page</button>
+        <button id="exportCsvBtn" class="btn-export">Export CSV</button>
+        <button id="exportJsonBtn" class="btn-export">Export JSON</button>
+      </div>
+
+      <div id="status" class="status"></div>
+
+      <div id="dataPreview" class="data-preview" style="display: none;">
+        <h3>Scraped Properties (<span id="propertyCount">0</span>)</h3>
+        <ul id="propertyList"></ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const scraper = {
+      properties: [],
+      popupWindow: null,
+
+      extractProperties: function() {
+        const listings = [];
+        const propertyCards = document.querySelectorAll('article[data-testid="property-card"]');
+        
+        propertyCards.forEach((card, index) => {
+          try {
+            const property = {
+              id: card.id || `property-${index}`,
+              address: this.getAddress(card),
+              price: this.getPrice(card),
+              link: this.getLink(card),
+              bedBathSqft: this.getBedBathSqft(card),
+              propertyType: this.getPropertyType(card),
+              realtor: this.getRealtor(card),
+              imageUrl: this.getImageUrl(card)
+            };
+            listings.push(property);
+          } catch (error) {
+            console.error('Error extracting property:', error);
+          }
+        });
+        
+        return listings;
+      },
+
+      getAddress: function(card) {
+        const addressEl = card.querySelector('address');
+        return addressEl ? addressEl.textContent.trim() : 'N/A';
+      },
+
+      getPrice: function(card) {
+        const priceEl = card.querySelector('[data-test="property-card-price"]');
+        return priceEl ? priceEl.textContent.trim() : 'N/A';
+      },
+
+      getLink: function(card) {
+        const linkEl = card.querySelector('a[data-test="property-card-link"]');
+        return linkEl ? linkEl.href : '';
+      },
+
+      getBedBathSqft: function(card) {
+        const detailsList = card.querySelectorAll('[data-testid="property-card-details"] li');
+        const details = [];
+        detailsList.forEach(li => {
+          const bold = li.querySelector('b');
+          const abbr = li.querySelector('abbr');
+          if (bold && abbr) {
+            details.push(`${bold.textContent} ${abbr.textContent}`);
+          }
+        });
+        return details.join(', ');
+      },
+
+      getPropertyType: function(card) {
+        try {
+          const detailsEl = card.querySelector('[data-testid="property-card-details"]').parentElement;
+          const text = detailsEl.textContent;
+          const match = text.match(/-\s*(.+)/);
+          return match ? match[1].trim() : 'N/A';
+        } catch (e) {
+          return 'N/A';
+        }
+      },
+
+      getRealtor: function(card) {
+        const realtorEl = card.querySelector('.StyledPropertyCardDataArea-c11n-8-109-3__sc-10i1r6-0.tCgTM');
+        return realtorEl ? realtorEl.textContent.trim() : 'N/A';
+      },
+
+      getImageUrl: function(card) {
+        const img = card.querySelector('img');
+        return img ? img.src : '';
+      },
+
+      exportToCSV: function() {
+        if (this.properties.length === 0) {
+          return 'No data to export';
+        }
+
+        const headers = Object.keys(this.properties[0]).join(',');
+        const rows = this.properties.map(prop => 
+          Object.values(prop).map(value => `"${String(value).replace(/"/g, '""')}"`).join(',')
+        );
+
+        return [headers, ...rows].join('\n');
+      },
+
+      downloadCSV: function() {
+        const csv = this.exportToCSV();
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `zillow_properties_${Date.now()}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      },
+
+      downloadJSON: function() {
+        const json = JSON.stringify(this.properties, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `zillow_properties_${Date.now()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+    };
+
+    // UI Functions
+    function showStatus(message, type = 'info') {
+      const statusDiv = document.getElementById('status');
+      statusDiv.className = `status ${type} show`;
+      statusDiv.innerHTML = `<span class="loading"></span>${message}`;
+      
+      if (type !== 'info') {
+        setTimeout(() => {
+          statusDiv.classList.remove('show');
+        }, 5000);
+      }
+    }
+
+    function updatePreview() {
+      const preview = document.getElementById('dataPreview');
+      const count = document.getElementById('propertyCount');
+      const list = document.getElementById('propertyList');
+      
+      if (scraper.properties.length > 0) {
+        preview.style.display = 'block';
+        count.textContent = scraper.properties.length;
+        
+        list.innerHTML = scraper.properties.slice(0, 10).map(prop => `
+          <li>
+            <strong>${prop.address}</strong><br>
+            <span>${prop.price} • ${prop.propertyType}</span>
+          </li>
+        `).join('');
+        
+        if (scraper.properties.length > 10) {
+          list.innerHTML += `<li><em>... and ${scraper.properties.length - 10} more properties</em></li>`;
+        }
+      }
+    }
+
+    // Event Listeners
+    document.getElementById('scrapeBtn').addEventListener('click', () => {
+      const url = document.getElementById('zillowUrl').value;
+      const maxPages = parseInt(document.getElementById('maxPages').value) || 5;
+      
+      if (!url || !url.includes('zillow.com')) {
+        showStatus('Please enter a valid Zillow URL', 'error');
+        return;
+      }
+      
+      showStatus('Opening Zillow in new window. A bookmarklet will be provided...', 'info');
+      
+      // Open in new window
+      const popup = window.open(url, 'zillowScraper', 'width=1200,height=800');
+      
+      // Wait for window to load, then inject script
+      popup.addEventListener('load', () => {
+        const script = popup.document.createElement('script');
+        script.textContent = `
+          ${scraper.extractProperties.toString()}
+          ${scraper.getAddress.toString()}
+          ${scraper.getPrice.toString()}
+          ${scraper.getLink.toString()}
+          ${scraper.getBedBathSqft.toString()}
+          ${scraper.getPropertyType.toString()}
+          ${scraper.getRealtor.toString()}
+          ${scraper.getImageUrl.toString()}
+          
+          const properties = scraper.extractProperties();
+          window.opener.postMessage({
+            type: 'zillowData',
+            properties: properties
+          }, '*');
+        `;
+        
+        popup.document.body.appendChild(script);
+      });
+      
+      // Listen for data from popup
+      window.addEventListener('message', (event) => {
+        if (event.data.type === 'zillowData') {
+          scraper.properties = event.data.properties;
+          showStatus(`Successfully scraped ${scraper.properties.length} properties!`, 'success');
+          updatePreview();
+        }
+      });
+    });
+
+    document.getElementById('exportCsvBtn').addEventListener('click', () => {
+      scraper.downloadCSV();
+      showStatus('CSV file downloaded!', 'success');
+    });
+
+    document.getElementById('exportJsonBtn').addEventListener('click', () => {
+      scraper.downloadJSON();
+      showStatus('JSON file downloaded!', 'success');
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Zillow Scraper",
+  "version": "1.0.0",
+  "description": "Scrape property listings from Zillow",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["*://www.zillow.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
+  "host_permissions": [
+    "*://www.zillow.com/*",
+    "https://ypkmafuyutbjluvalmki.supabase.co/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon.png"
+  },
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  }
+}

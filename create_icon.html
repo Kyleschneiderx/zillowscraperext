@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<body>
+<canvas id="canvas" width="128" height="128"></canvas>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+// Background
+ctx.fillStyle = '#0066cc';
+ctx.fillRect(0, 0, 128, 128);
+
+// House shape
+ctx.fillStyle = '#ffffff';
+// Roof
+ctx.beginPath();
+ctx.moveTo(64, 20);
+ctx.lineTo(30, 55);
+ctx.lineTo(98, 55);
+ctx.closePath();
+ctx.fill();
+
+// House body
+ctx.fillRect(40, 55, 48, 40);
+
+// Door
+ctx.fillStyle = '#0066cc';
+ctx.fillRect(54, 65, 20, 30);
+
+// Window
+ctx.fillStyle = '#ffffff';
+ctx.fillRect(48, 65, 15, 15);
+ctx.fillRect(65, 65, 15, 15);
+
+// Save as PNG using download
+const img = canvas.toDataURL('image/png');
+const link = document.createElement('a');
+link.download = 'icon.png';
+link.href = img;
+document.body.appendChild(link);
+link.click();
+</script>
+</body>
+</html>

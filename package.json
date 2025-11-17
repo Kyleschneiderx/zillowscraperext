@@ -1,0 +1,18 @@
+{
+  "name": "zillow-scraper",
+  "version": "1.0.0",
+  "description": "Scrape property listings from Zillow",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "zillow",
+    "scraper",
+    "real-estate",
+    "property"
+  ],
+  "author": "",
+  "license": "MIT"
+}
