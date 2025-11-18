@@ -1,6 +1,6 @@
 // Popup script for Zillow Scraper
 
-const AUTH_ENDPOINT = 'https://ypkmafuyutbjluvalmki.supabase.co/functions/v1/authenticate-api-key';
+const AUTH_ENDPOINT = 'https://rbdayeaapjzwnujbxpbr.supabase.co/functions/v1/authenticate-api-key';
 
 document.addEventListener('DOMContentLoaded', () => {
   const scrapeBtn = document.getElementById('scrapeBtn');
