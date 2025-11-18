@@ -4,8 +4,8 @@ const AUTH_ENDPOINT = 'https://ypkmafuyutbjluvalmki.supabase.co/functions/v1/aut
 
 document.addEventListener('DOMContentLoaded', () => {
   const scrapeBtn = document.getElementById('scrapeBtn');
-  const scrapeCurrentBtn = document.getElementById('scrapeCurrentBtn');
   const authBtn = document.getElementById('authBtn');
+  const loader = document.getElementById('initialLoader');
   const settingsBtn = document.getElementById('settingsBtn');
   const apiKeyInput = document.getElementById('apiKey');
   const authStatusDiv = document.getElementById('authStatus');
@@ -19,30 +19,40 @@ document.addEventListener('DOMContentLoaded', () => {
   let isAuthenticated = false;
   let userType = 'free'; // 'free' or 'premium'
 
-  function showStatus(message, type = 'info') {
-    statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+  function showStatus (message, type = 'info') {
+    statusDiv.innerHTML = `<div class="status ${ type }">${ message }</div>`;
   }
 
-  function clearStatus() {
+  function clearStatus () {
     statusDiv.innerHTML = '';
   }
 
-  function showAuthStatus(message, isAuthenticated) {
-    authStatusDiv.innerHTML = `<div class="auth-status ${isAuthenticated ? 'authenticated' : 'unauthenticated'}">${message}</div>`;
+  function showLoader () {
+    loader.classList.remove('hidden');
+    loader.classList.add('loader');
   }
 
-  function setListingSummary(count, lastUpdated) {
+  function hideLoader () {
+    loader.classList.add('hidden');
+    loader.classList.remove('loader');
+  }
+
+  function showAuthStatus (message, isAuthenticated) {
+    authStatusDiv.innerHTML = `<div class="auth-status ${ isAuthenticated ? 'authenticated' : 'unauthenticated' }">${ message }</div>`;
+  }
+
+  function setListingSummary (count, lastUpdated) {
     const safeCount = Number.isFinite(count) ? count : 0;
-    listingCountEl.textContent = `${safeCount.toLocaleString()} listing${safeCount === 1 ? '' : 's'} scraped`;
+    listingCountEl.textContent = `${ safeCount.toLocaleString() } listing${ safeCount === 1 ? '' : 's' } scraped`;
     if (lastUpdated) {
       const parsed = new Date(lastUpdated);
-      listingUpdatedEl.textContent = `Last updated: ${isNaN(parsed.getTime()) ? '—' : parsed.toLocaleString()}`;
+      listingUpdatedEl.textContent = `Last updated: ${ isNaN(parsed.getTime()) ? '—' : parsed.toLocaleString() }`;
     } else {
       listingUpdatedEl.textContent = 'Last updated: —';
     }
   }
 
-  async function refreshListingSummary() {
+  async function refreshListingSummary () {
     try {
       const result = await chrome.storage.local.get('zillowScrapedData');
       if (result.zillowScrapedData) {
@@ -71,8 +81,9 @@ document.addEventListener('DOMContentLoaded', () => {
   setListingSummary(0, null);
 
   // Check authentication with server
-  async function checkAuthentication(apiKey) {
+  async function checkAuthentication (apiKey) {
     try {
+
       const response = await fetch(AUTH_ENDPOINT, {
         method: 'POST',
         headers: {
@@ -80,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
           'Content-Type': 'application/json'
         }
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         console.log('Authentication data:', data);
@@ -100,11 +111,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Load API key from storage
-  async function loadApiKey() {
+  async function loadApiKey () {
     try {
-      const result = await chrome.storage.local.get(['apiKey', 'isAuthenticated', 'userType']);
+      const result = await chrome.storage.local.get([ 'apiKey', 'isAuthenticated', 'userType' ]);
       if (result.apiKey && result.isAuthenticated) {
         // Check if we're still authenticated
+
         authSection.classList.add('hidden');
         showAuthStatus('<span class="loading"></span>Verifying stored key...', false);
         const authResult = await checkAuthentication(result.apiKey);
@@ -117,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
           apiKeyInput.value = '';
         } else {
           setAuthenticated(false);
-          await chrome.storage.local.remove(['apiKey', 'isAuthenticated', 'userType']);
+          await chrome.storage.local.remove([ 'apiKey', 'isAuthenticated', 'userType' ]);
           apiKeyInput.value = '';
         }
       } else {
@@ -134,9 +146,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Save API key to storage
-  async function saveApiKey(apiKey, userTypeData) {
+  async function saveApiKey (apiKey, userTypeData) {
     try {
-      await chrome.storage.local.set({ 
+      await chrome.storage.local.set({
         apiKey: apiKey,
         isAuthenticated: true,
         userType: userTypeData || 'free'
@@ -147,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Set authenticated state
-  function setAuthenticated(authenticated, userTypeData = null) {
+  function setAuthenticated (authenticated, userTypeData = null) {
     isAuthenticated = authenticated;
     if (userTypeData) {
       userType = userTypeData;
@@ -172,13 +184,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   // Get the active tab
-  async function getActiveTab() {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  async function getActiveTab () {
+    const [ tab ] = await chrome.tabs.query({ active: true, currentWindow: true });
     return tab;
   }
 
   // Check if authenticated before allowing actions
-  function requireAuth() {
+  function requireAuth () {
     if (!isAuthenticated) {
       showStatus('Please authenticate first', 'error');
       return false;
@@ -187,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Check free user limit
-  async function checkFreeUserLimit() {
+  async function checkFreeUserLimit () {
     if (userType === 'premium') {
       return { allowed: true };
     }
@@ -196,16 +208,16 @@ document.addEventListener('DOMContentLoaded', () => {
       const result = await chrome.storage.local.get('zillowScrapedData');
       const currentCount = result.zillowScrapedData?.totalCount || 0;
       const FREE_USER_LIMIT = 10;
-      
+
       if (currentCount >= FREE_USER_LIMIT) {
-        return { 
-          allowed: false, 
-          message: `Free users can only scrape ${FREE_USER_LIMIT} items total. You've reached the limit.`,
+        return {
+          allowed: false,
+          message: `Free users can only scrape ${ FREE_USER_LIMIT } items total. You've reached the limit.`,
           currentCount,
           limit: FREE_USER_LIMIT
         };
       }
-      
+
       return { allowed: true, currentCount, limit: FREE_USER_LIMIT };
     } catch (error) {
       console.error('Error checking limit:', error);
@@ -214,7 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Update upgrade CTA visibility
-  function updateUpgradeCTA() {
+  function updateUpgradeCTA () {
     const upgradeCTA = document.getElementById('upgradeCTA');
     if (!upgradeCTA) return;
 
@@ -226,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Hide upgrade CTA
-  function hideUpgradeCTA() {
+  function hideUpgradeCTA () {
     const upgradeCTA = document.getElementById('upgradeCTA');
     if (upgradeCTA) {
       upgradeCTA.classList.add('hidden');
@@ -234,13 +246,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Authentication handler
-  async function handleAuthentication() {
+  async function handleAuthentication () {
     const apiKey = apiKeyInput.value.trim();
     if (!apiKey) {
       showAuthStatus('Please enter an API key', false);
       return;
     }
 
+    showLoader();
     authBtn.disabled = true;
     authBtn.textContent = 'Authenticating...';
     apiKeyInput.disabled = true;
@@ -248,22 +261,25 @@ document.addEventListener('DOMContentLoaded', () => {
     showAuthStatus('<span class="loading"></span>Checking authentication...', false);
 
     const result = await checkAuthentication(apiKey);
-    
+
     if (result.success) {
       const detectedUserType = result.data.userType || 'free';
       await saveApiKey(apiKey, detectedUserType);
       setAuthenticated(true, detectedUserType);
       showStatus('Authentication successful!', 'success');
+      authSection.classList.add('hidden');
+      mainFeatures.classList.remove('hidden');
     } else {
       setAuthenticated(false);
-      showAuthStatus(`Authentication failed: ${result.error}`, false);
-      showStatus(`Authentication failed: ${result.error}`, 'error');
+      showAuthStatus(`Authentication failed: ${ result.error }`, false);
+      showStatus(`Authentication failed: ${ result.error }`, 'error');
     }
 
+    hideLoader();
     authBtn.disabled = false;
     authBtn.textContent = 'Authenticate';
     apiKeyInput.disabled = false;
-    authSection.classList.remove('hidden');
+
   }
 
   // Authentication button
@@ -292,8 +308,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Scrape multiple pages
   scrapeBtn.addEventListener('click', async () => {
+    if (!maxPagesInput.value || maxPagesInput.value <= 0) {
+      showStatus('Invalid max page to scrape. Make sure it is set to 1 or more', 'error');
+      return;
+    }
     if (!requireAuth()) return;
-    
+
     // Check free user limit
     const limitCheck = await checkFreeUserLimit();
     if (!limitCheck.allowed) {
@@ -302,7 +322,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const maxPages = parseInt(maxPagesInput.value) || 5;
+    const maxPages = parseInt(maxPagesInput.value) || 1;
     const tab = await getActiveTab();
 
     if (!tab.url.includes('zillow.com')) {
@@ -314,7 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       await chrome.scripting.executeScript({
         target: { tabId: tab.id },
-        files: ['content.js']
+        files: [ 'content.js' ]
       });
     } catch (error) {
       // Script might already be injected
@@ -339,12 +359,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (response && response.success) {
           if (response.limitReached) {
-            showStatus(`Free limit reached! You've scraped ${response.currentCount} items. Upgrade to continue.`, 'error');
+            showStatus(`Free limit reached! You've scraped ${ response.currentCount } items. Upgrade to continue.`, 'error');
             updateUpgradeCTA();
           } else {
             showStatus('Scraping started! Check the console for progress. The page will navigate automatically.', 'success');
           }
-          
+
           // Poll for updates every 3 seconds
           const pollInterval = setInterval(async () => {
             try {
@@ -353,13 +373,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const count = result.zillowScrapedData.totalCount || 0;
                 const lastUpdated = result.zillowScrapedData.lastUpdated;
                 const updateTime = new Date(lastUpdated).toLocaleTimeString();
-                const limitMsg = userType === 'free' ? ` (Limit: ${limitCheck.limit || 10})` : '';
-                showStatus(`Currently scraped: ${count} properties${limitMsg} (Updated: ${updateTime})`, 'info');
-                
+                const limitMsg = userType === 'free' ? ` (Limit: ${ limitCheck.limit || 10 })` : '';
+                showStatus(`Currently scraped: ${ count } properties${ limitMsg } (Updated: ${ updateTime })`, 'info');
+
                 // Check if limit reached during polling
                 if (userType === 'free' && count >= (limitCheck.limit || 10)) {
                   clearInterval(pollInterval);
-                  showStatus(`Free limit reached! You've scraped ${count} items. Upgrade to continue.`, 'error');
+                  showStatus(`Free limit reached! You've scraped ${ count } items. Upgrade to continue.`, 'error');
                   updateUpgradeCTA();
                 }
               }
@@ -367,7 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
               console.error('Polling error:', error);
             }
           }, 3000);
-          
+
           // Stop polling after 5 minutes
           setTimeout(() => {
             clearInterval(pollInterval);
@@ -381,63 +401,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Scrape current page only
-  scrapeCurrentBtn.addEventListener('click', async () => {
-    if (!requireAuth()) return;
-    
-    // Check free user limit
-    const limitCheck = await checkFreeUserLimit();
-    if (!limitCheck.allowed) {
-      showStatus(limitCheck.message, 'error');
-      updateUpgradeCTA();
-      return;
-    }
-
-    const tab = await getActiveTab();
-
-    if (!tab.url.includes('zillow.com')) {
-      showStatus('Please navigate to Zillow.com first', 'error');
-      return;
-    }
-
-    showStatus(`<span class="loading"></span>Scraping current page...`, 'info');
-
-    const limitInfo = limitCheck.allowed ? { currentCount: limitCheck.currentCount || 0, limit: limitCheck.limit || 10 } : null;
-
-    try {
-      chrome.tabs.sendMessage(tab.id, {
-        action: 'scrapeCurrentPage',
-        userType: userType,
-        limitInfo: limitInfo
-      }, (response) => {
-        if (chrome.runtime.lastError) {
-          showStatus('Error: ' + chrome.runtime.lastError.message, 'error');
-          return;
-        }
-
-        if (response && response.success) {
-          if (response.limitReached) {
-            showStatus(`Free limit reached! You've scraped ${response.currentCount} items. Upgrade to continue.`, 'error');
-            updateUpgradeCTA();
-          } else {
-            showStatus(`Scraped ${response.count} properties from current page!`, 'success');
-          }
-        } else {
-          showStatus('Error scraping page', 'error');
-        }
-      });
-    } catch (error) {
-      showStatus('Error: ' + error.message, 'error');
-    }
-  });
-
 
 
   // Initialize on popup open
   (async () => {
     // Load API key and check authentication
+    showLoader();
     await loadApiKey();
-    
+    hideLoader();
+
     // Load existing data count if authenticated
     await refreshListingSummary();
 
@@ -448,7 +420,7 @@ document.addEventListener('DOMContentLoaded', () => {
         userType = result.userType;
         updateUpgradeCTA();
       }
-      
+
       try {
         chrome.tabs.sendMessage((await getActiveTab()).id, {
           action: 'getData'
@@ -457,7 +429,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const count = response.data.totalCount || 0;
             setListingSummary(count, response.data.lastUpdated);
             const lastUpdated = response.data.lastUpdated ? new Date(response.data.lastUpdated).toLocaleString() : '—';
-            showStatus(`Found ${count} properties in storage (Updated: ${lastUpdated})`, 'info');
+            showStatus(`Found ${ count } properties in storage (Updated: ${ lastUpdated })`, 'info');
           }
         });
       } catch (error) {
