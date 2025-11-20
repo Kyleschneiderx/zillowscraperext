@@ -63,6 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (error) {
       console.error('Error loading listing summary:', error);
       setListingSummary(0, null);
+
     }
   }
 
@@ -122,8 +123,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const authResult = await checkAuthentication(result.apiKey);
         if (authResult.success) {
           const detectedUserType = authResult.data.userType || result.userType || 'free';
+          const userEmail = authResult.data.user?.email || authResult.data.email || result.userEmail || null;
           userType = detectedUserType;
-          await chrome.storage.local.set({ userType: detectedUserType });
+          const updateData = { userType: detectedUserType };
+          if (userEmail) {
+            updateData.userEmail = userEmail;
+          }
+          await chrome.storage.local.set(updateData);
           setAuthenticated(true);
           // Don't show the API key in the input field when authenticated
           apiKeyInput.value = '';
@@ -146,13 +152,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Save API key to storage
-  async function saveApiKey (apiKey, userTypeData) {
+  async function saveApiKey (apiKey, userTypeData, userEmail = null) {
     try {
-      await chrome.storage.local.set({
+      const storageData = {
         apiKey: apiKey,
         isAuthenticated: true,
         userType: userTypeData || 'free'
-      });
+      };
+      if (userEmail) {
+        storageData.userEmail = userEmail;
+      }
+      await chrome.storage.local.set(storageData);
     } catch (error) {
       console.error('Error saving API key:', error);
     }
@@ -264,7 +274,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (result.success) {
       const detectedUserType = result.data.userType || 'free';
-      await saveApiKey(apiKey, detectedUserType);
+      const userEmail = result.data.user?.email || result.data.email || null;
+      await saveApiKey(apiKey, detectedUserType, userEmail);
       setAuthenticated(true, detectedUserType);
       showStatus('Authentication successful!', 'success');
       authSection.classList.add('hidden');
