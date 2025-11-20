@@ -597,7 +597,7 @@ if (window.zillowScraper) {
     }
 
     async saveToBackend () {
-      const SAVE_LISTINGS_ENDPOINT = 'https://ypkmafuyutbjluvalmki.supabase.co/functions/v1/save-listings';
+      const SAVE_LISTINGS_ENDPOINT = 'https://rbdayeaapjzwnujbxpbr.supabase.co/functions/v1/save-listings';
 
       try {
         // Get stored API key
