@@ -313,7 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (upgradeBtn) {
     upgradeBtn.addEventListener('click', () => {
       // Replace with your actual upgrade URL
-      chrome.tabs.create({ url: 'http://localhost:8080/settings' });
+      chrome.tabs.create({ url: 'https://dashboard.zillowscraper.com/settings' });
     });
   }
 
