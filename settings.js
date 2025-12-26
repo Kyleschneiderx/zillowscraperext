@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Dashboard button - open dashboard page
   dashboardBtn.addEventListener('click', () => {
-    chrome.tabs.create({ url: 'http://localhost:8080/dashboard' });
+    chrome.tabs.create({ url: 'https://dashboard.zillowscraper.com' });
   });
 
   // Logout function
